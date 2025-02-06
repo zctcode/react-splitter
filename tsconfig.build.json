@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "outDir": "./@ihatecode/react-splitter/lib",
+    "module": "NodeNext",
+    "jsx": "react",
+    "target": "ES2015",
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": false,
+    "baseUrl": "./",
+  },
+  "include": [
+    "src/components/**/*.ts",
+    "src/components/**/*.tsx"
+  ],
+}
