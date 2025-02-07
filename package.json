@@ -18,15 +18,14 @@
   "keywords": [
     "ihatecode",
     "react",
-    "react-splitter",
-    "split-pane",
-    "splitter"
+    "splitter",
+    "react-splitter"
   ],
   "author": "ChuTao Zhang",
   "license": "MIT",
   "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
   },
   "dependencies": {
     "classnames": "^2.3.2",

@@ -1,2 +1,5 @@
 /@ihatecode
 /node_modules
+
+*.log
+*.lock

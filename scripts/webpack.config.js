@@ -99,8 +99,9 @@ module.exports = {
  * @param {string} loader ('css'|'less'|'sass')
  */
 function getCssRule(loader) {
+  let styleLoader = process.env.NODE_ENV === "production" ? MiniCssExtractPlugin.loader : 'style-loader';
   const loaders = [
-    MiniCssExtractPlugin.loader,
+    styleLoader,
     "css-loader",
     {
       loader: "postcss-loader",

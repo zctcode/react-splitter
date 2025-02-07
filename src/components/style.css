@@ -1,0 +1,40 @@
+.rc-splitter-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.rc-splitter-vertical {
+    flex-direction: column;
+}
+
+.rc-splitter-bordered {
+    border: 1px solid #eee;
+}
+
+.rc-splitter-resizing {
+    user-select: none;
+}
+
+.rc-splitbar {
+    position: relative;
+    background-color: #eee;
+}
+
+.rc-splitbar-vertical {
+    height: 1px;
+    width: 100%;
+    cursor: row-resize;
+}
+
+.rc-splitbar-horizontal {
+    width: 1px;
+    height: 100%;
+    cursor: col-resize;
+}
+
+.rc-splitter-item {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}

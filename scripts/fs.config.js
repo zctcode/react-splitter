@@ -1,5 +1,4 @@
 const fs = require("fs");
-const sass = require('sass');
 const path = require("path");
 const pkg = require("../package.json");
 
@@ -92,14 +91,6 @@ function copyFiles(sourceDir, targetDir) {
     fs.writeFile(packageJsonPath, packageJsonString, (err) => {
       if (err) {
         console.error('写入 package.json 文件时出错:', err);
-        return;
-      }
-    });
-
-    const sassResult = sass.compile(`${sourceRootDir}/style.scss`, { style: 'compressed' });
-    fs.writeFile(`${targetRootDir}/react-splitter/lib/style.css`, sassResult.css, (err) => {
-      if (err) {
-        console.error('写入 style.css 文件时出错:', err);
         return;
       }
     });
