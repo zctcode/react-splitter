@@ -50,6 +50,11 @@ const App: React.FC = () => {
 export default App;
 ```
 
+## Demo
+Online demo: [https://rg4jgy.csb.app/](https://rg4jgy.csb.app/)
+
+[![Edit react-splitter](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/rg4jgy)
+
 ## Props
 #### Splitter props
 |Property|Type|Optional|Default|

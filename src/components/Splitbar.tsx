@@ -28,7 +28,7 @@ const Splitbar = (props: SplitbarProps) => {
             }}
             className={classes}
             onMouseDown={props.onMouseDown}
-        ></div>
+        />
     );
 }
 

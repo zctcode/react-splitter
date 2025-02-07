@@ -50,6 +50,11 @@ const App: React.FC = () => {
 export default App;
 ```
 
+## 示例
+在线预览: [https://rg4jgy.csb.app/](https://rg4jgy.csb.app/)
+
+[![Edit react-splitter](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/rg4jgy)
+
 ## 属性
 #### Splitter props
 |参数|说明|类型|是否必须|默认值|
