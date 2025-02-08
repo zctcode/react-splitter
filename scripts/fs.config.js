@@ -82,6 +82,10 @@ function copyFiles(sourceDir, targetDir) {
     const packageJson = {
       ...pkg,
       scripts: {},
+      dependencies: {
+        "react": pkg.dependencies.react,
+        "classnames": pkg.dependencies.classnames,
+      },
       devDependencies: {}
     };
 
