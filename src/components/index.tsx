@@ -193,11 +193,11 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         document?.addEventListener('mousemove', onMouseMove, false);
     };
 
-    const classes = cn('rc-splitter-wrapper', {
-        'rc-splitter-bordered': props.bordered,
-        'rc-splitter-vertical': props.direction === 'vertical',
-        'rc-splitter-horizontal': props.direction === 'horizontal',
-        'rc-splitter-resizing': isResizing,
+    const classes = cn('ihc-splitter-wrapper', {
+        'ihc-splitter-bordered': props.bordered,
+        'ihc-splitter-vertical': props.direction === 'vertical',
+        'ihc-splitter-horizontal': props.direction === 'horizontal',
+        'ihc-splitter-resizing': isResizing,
     }, props.className);
 
     return (
@@ -206,7 +206,7 @@ const Splitter: React.FC<SplitterProps> = (props) => {
                 return (<React.Fragment key={`splititem_${item.key || index}`}>
                     <div
                         key={`splititem_${item.key || index}`}
-                        className={cn("rc-splitter-item")}
+                        className={cn("ihc-splitter-item")}
                         style={getItemStyle(item, index)}
                     >
                         {item.content}

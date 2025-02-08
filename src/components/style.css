@@ -1,39 +1,39 @@
-.rc-splitter-wrapper {
+.ihc-splitter-wrapper {
     width: 100%;
     height: 100%;
     display: flex;
 }
 
-.rc-splitter-vertical {
+.ihc-splitter-vertical {
     flex-direction: column;
 }
 
-.rc-splitter-bordered {
+.ihc-splitter-bordered {
     border: 1px solid #eee;
 }
 
-.rc-splitter-resizing {
+.ihc-splitter-resizing {
     user-select: none;
 }
 
-.rc-splitbar {
+.ihc-splitbar {
     position: relative;
     background-color: #eee;
 }
 
-.rc-splitbar-vertical {
+.ihc-splitbar-vertical {
     height: 1px;
     width: 100%;
     cursor: row-resize;
 }
 
-.rc-splitbar-horizontal {
+.ihc-splitbar-horizontal {
     width: 1px;
     height: 100%;
     cursor: col-resize;
 }
 
-.rc-splitter-item {
+.ihc-splitter-item {
     width: 100%;
     height: 100%;
     overflow: hidden;

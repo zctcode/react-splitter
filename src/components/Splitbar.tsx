@@ -9,9 +9,9 @@ export interface SplitbarProps {
 }
 
 const Splitbar = (props: SplitbarProps) => {
-    const classes = cn('rc-splitbar', {
-        'rc-splitbar-horizontal': props.direction !== 'vertical',
-        'rc-splitbar-vertical': props.direction === 'vertical'
+    const classes = cn('ihc-splitbar', {
+        'ihc-splitbar-horizontal': props.direction !== 'vertical',
+        'ihc-splitbar-vertical': props.direction === 'vertical'
     });
 
     const verticalSize = props.direction === 'vertical' && props.size && props.size > 0 ? props.size : undefined;
