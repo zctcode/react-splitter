@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import Splitter from './components';
+import './components/style.css';
 import './index.scss';
 
 interface PanelProps {

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import cn from 'classnames';
 import Splitbar, { SplitbarProps } from './Splitbar';
-import './style.css';
 
 export interface SplitterItemProps {
     key?: React.Key;

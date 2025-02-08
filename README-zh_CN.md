@@ -25,6 +25,7 @@ yarn add @ihatecode/react-splitter
 ```jsx
 import React from 'react';
 import Splitter from '@ihatecode/react-splitter';
+import '@ihatecode/react-splitter/lib/style.css';
 
 const App: React.FC = () => {
   return (

@@ -1,6 +1,6 @@
 {
   "name": "@ihatecode/react-splitter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A split pane component written in React.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
