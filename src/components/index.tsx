@@ -35,6 +35,7 @@ const NUM_REG = new RegExp('\\d+\\.?\\d*');
 
 const Splitter: React.FC<SplitterProps> = (props) => {
     const wrapperRef = React.useRef<HTMLDivElement>(null);
+    const itemsRef = React.useRef<(HTMLDivElement | null)[]>([]);
     const [isResizing, setIsResizing] = React.useState(false);
     const [itemSizeList, setItemSizeList] = React.useState<ItemSizeProps[]>([]);
 
@@ -76,8 +77,8 @@ const Splitter: React.FC<SplitterProps> = (props) => {
                 percent: px / wrapperSize,
             }
         });
-
         setItemSizeList(_itemSizes);
+        handleItemsStyle(_itemSizes);
         props.onResize?.(_itemSizes.map(m => m.px), _itemSizes.map(m => m.percent));
     }, [props.direction, wrapperRef.current]);
 
@@ -120,24 +121,32 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         return 0;
     }, [wrapperRef.current]);
 
-    const getItemStyle = React.useCallback((item: SplitterItemProps, index: number) => {
-        const size = `${(itemSizeList[index]?.percent || 0) * 100}%`;
-        const hSize = props.direction !== 'vertical' ? size : undefined;
-        const hSizeMax = props.direction !== 'vertical' ? item.maxSize : undefined;
-        const hSizeMin = props.direction !== 'vertical' ? item.minSize : undefined;
-        const vSize = props.direction === 'vertical' ? size : undefined;
-        const vSizeMax = props.direction === 'vertical' ? item.maxSize : undefined;
-        const vSizeMin = props.direction === 'vertical' ? item.minSize : undefined;
+    const handleItemsStyle = (inItemSizeList: ItemSizeProps[]) => {
+        inItemSizeList.forEach((item, index) => {
+            if (props.direction === 'vertical') {
+                const _style = [`height: ${(item.percent || 0) * 100}%`];
 
-        return {
-            width: hSize,
-            maxWidth: hSizeMax,
-            minWidth: hSizeMin,
-            height: vSize,
-            maxHeight: vSizeMax,
-            minHeight: vSizeMin,
-        };
-    }, [props.direction, itemSizeList]);
+                if (props.items[index].maxSize) {
+                    _style.push(`max-height: ${props.items[index].maxSize}`);
+                }
+
+                if (props.items[index].minSize) {
+                    _style.push(`min-height: ${props.items[index].minSize}`);
+                }
+                itemsRef.current[index]?.setAttribute('style', _style.join(';'));
+            } else {
+                const _style = [`width: ${(item.percent || 0) * 100}%`];
+                if (props.items[index].maxSize) {
+                    _style.push(`max-width: ${props.items[index].maxSize}`);
+                }
+
+                if (props.items[index].minSize) {
+                    _style.push(`min-width: ${props.items[index].minSize}`);
+                }
+                itemsRef.current[index]?.setAttribute('style', _style.join(';'));
+            }
+        })
+    };
 
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
         e.persist();
@@ -162,6 +171,7 @@ const Splitter: React.FC<SplitterProps> = (props) => {
                 item2.px = _px2;
                 item2.percent = _px2 / wrapperSize;
                 setItemSizeList([...itemSizeList]);
+                handleItemsStyle(itemSizeList);
                 props.onResize?.(itemSizeList.map(m => m.px), itemSizeList.map(m => m.percent));
             }
         };
@@ -207,7 +217,7 @@ const Splitter: React.FC<SplitterProps> = (props) => {
                     <div
                         key={`splititem_${item.key || index}`}
                         className={cn("ihc-splitter-item")}
-                        style={getItemStyle(item, index)}
+                        ref={ref => itemsRef.current[index] = ref}
                     >
                         {item.content}
                     </div>
