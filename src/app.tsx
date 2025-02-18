@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import Splitter from './components';
+import Splitter1 from './components/Splitter';
 import './components/style.css';
 import './index.scss';
 
@@ -31,7 +32,7 @@ function App() {
 
     return (
         <div className="container">
-            <Splitter
+            {/* <Splitter
                 splitbar={{ size: 4 }}
                 direction="vertical"
                 onResize={(sizes, percents) => {
@@ -67,6 +68,50 @@ function App() {
                     defaultSize: '30%',
                     minSize: 230,
                     content: <Panel wSize={subSizes.reduce((prev, curr) => prev + curr, 0)} wPercent={1} hSize={sizes[1] || 0} hPercent={percents[1] || 0} />
+                }]}
+            /> */}
+
+            <Splitter1
+                splitbar={{ size: 5 }}
+                // direction="vertical"
+                // onResize={(sizes, percents) => {
+                //     setSizes(sizes);
+                //     setPercents(percents);
+                // }}
+                items={[{
+                    // size: '230px',
+                    content: '22'
+                    // content: <Splitter1
+                    //     splitbar={{ size: 4 }}
+                    //     // onResize={(sizes, percents) => {
+                    //     //     setSubSizes(sizes);
+                    //     //     setSubPercents(percents);
+                    //     // }}
+                    //     items={[
+                    //         {
+                    //             size: 0.25,
+                    //             min: 0.5,
+                    //             content: <Panel wSize={subSizes[0] || 0} wPercent={subPercents[0] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
+                    //         },
+                    //         {
+                    //             content: <Panel wSize={subSizes[1] || 0} wPercent={subPercents[1] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
+                    //         },
+                    //         {
+                    //             content: <Panel wSize={subSizes[2] || 0} wPercent={subPercents[2] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
+                    //         }
+                    //     ]}
+                    // />,
+                }, {
+                    // size: '200px',
+                    // min: '100px',
+                    // max: '300px',
+                    content: <Panel wSize={subSizes.reduce((prev, curr) => prev + curr, 0)} wPercent={1} hSize={sizes[1] || 0} hPercent={percents[1] || 0} />
+                }, {
+                    // size: '100px',
+                    content: 'mmm'
+                }, {
+                    // size: '100px',
+                    content: 'mmm'
                 }]}
             />
         </div>
