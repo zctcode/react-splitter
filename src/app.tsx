@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import Splitter from './components';
-import Splitter1 from './components/Splitter';
 import './components/style.css';
 import './index.scss';
 
@@ -42,6 +41,12 @@ function App() {
     const [percents, setPercents] = useState<number[]>([]);
     const [subSizes, setSubSizes] = useState<number[]>([]);
     const [subPercents, setSubPercents] = useState<number[]>([]);
+
+    useEffect(() => {
+        setTimeout(() => {
+            setSizes([0.2]);
+        }, 2 * 1000)
+    }, [])
 
     return (
         <div className="container">
@@ -84,17 +89,17 @@ function App() {
                 }]}
             /> */}
 
-            <Splitter1
-                splitbar={{ size: 5 }}
-                // direction="vertical"
+            <Splitter
+                splitbar={{ size: 5, color: 'green' }}
+                direction="vertical"
                 // onResize={(sizes, percents) => {
                 //     setSizes(sizes);
                 //     setPercents(percents);
                 // }}
                 items={[{
                     // size: '230px',
-                    content: '22'
-                    // content: <Splitter1
+                    content: '22',
+                    // content: <Splitter
                     //     splitbar={{ size: 4 }}
                     //     // onResize={(sizes, percents) => {
                     //     //     setSubSizes(sizes);
@@ -103,7 +108,7 @@ function App() {
                     //     items={[
                     //         {
                     //             size: 0.25,
-                    //             min: 0.5,
+                    //             // max: 0.5,
                     //             content: <Panel wSize={subSizes[0] || 0} wPercent={subPercents[0] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
                     //         },
                     //         {
@@ -115,19 +120,23 @@ function App() {
                     //     ]}
                     // />,
                 }, {
-                    // size: '200px',
+                    size: '200px',
                     // min: '100px',
                     // max: '300px',
-                    content: <Panel wSize={subSizes.reduce((prev, curr) => prev + curr, 0)} wPercent={1} hSize={sizes[1] || 0} hPercent={percents[1] || 0} />
+                    content: 'aaa',
+                    // resizable: false
                 }, {
-                    // size: '100px',
-                    content: 'mmm'
+                    // size: sizes[0] || 0,
+                    // min: '100px',
+                    // max: '300px',
+                    content: 'bbb',
+                    // resizable: false
                 }, {
-                    // size: '100px',
-                    key: 'test',
-                    content: (<div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
-                        {/* <N /> */}
-                    </div>)
+                    // size: sizes[0] || 0,
+                    // min: '100px',
+                    // max: '300px',
+                    content: 'ccc',
+                    // resizable: false
                 }]}
             />
         </div>

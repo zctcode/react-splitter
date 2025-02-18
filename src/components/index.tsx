@@ -1,178 +1,111 @@
 import * as React from 'react';
 import cn from 'classnames';
-import Splitbar, { SplitbarProps } from './Splitbar';
 
 export interface SplitterItemProps {
     key?: React.Key;
-    defaultSize?: number | string;
-    minSize?: number | string;
-    maxSize?: number | string;
+    size?: number | string;
+    min?: number | string;
+    max?: number | string;
+    resizable?: boolean;
     content: React.ReactNode;
 }
 
-interface SplitterProps {
-    bordered?: boolean;
+export interface SplitterProps {
     className?: string;
     style?: React.CSSProperties;
     direction?: 'horizontal' | 'vertical';
-    splitbar?: Omit<SplitbarProps, 'direction' | 'onMouseDown'>;
+    splitbar?: SplitbarProps;
     items: SplitterItemProps[];
-    onResize?: (sizes: number[], percents: number[]) => void;
+}
+
+export interface SplitbarProps {
+    size?: number;
+    color?: string;
 }
 
 interface ItemSizeProps {
     px: number;
     percent: number;
-    maxPx: number;
-    minPx: number;
-    maxPercent: number;
+    min: number;
     minPercent: number;
+    max: number;
+    maxPercent: number;
 }
 
 const PX_REG = new RegExp('\\d+(px)$');
-const PERCENT_REG = new RegExp('\\d+(%)$');
 const NUM_REG = new RegExp('\\d+\\.?\\d*');
 
 const Splitter: React.FC<SplitterProps> = (props) => {
     const wrapperRef = React.useRef<HTMLDivElement>(null);
     const itemsRef = React.useRef<(HTMLDivElement | null)[]>([]);
+    const itemsSizeRef = React.useRef<ItemSizeProps[]>([]);
     const [isResizing, setIsResizing] = React.useState(false);
-    const [itemSizeList, setItemSizeList] = React.useState<ItemSizeProps[]>([]);
 
     React.useEffect(() => {
-        let noSizeCount = 0;
-        let _itemSizes: ItemSizeProps[] = [];
-        const barsize = (props.items.length - 1) * (props.splitbar?.size || 1);
-        const wrapperSize = (props.direction === "vertical" ? (wrapperRef.current?.clientHeight || 0) : (wrapperRef.current?.clientWidth || 0)) - barsize;
+        if (wrapperRef.current) {
+            const wrapperSize = getWrapperSize();
+            const sizes = props.items.map((item) => {
+                return calcItemSize(item, wrapperSize);
+            });
+            const noSizeCount = sizes.filter(item => !item.px).length;
+            const pxSum = sizes.reduce((sum, item) => sum + (item.px || 0), 0);
+            // 未指定尺寸的item均分剩余空间
+            const restItemSizes = distributeNumber(wrapperSize - pxSum, noSizeCount);
+            const minusNums = getMinusSizes();
 
-        props.items.forEach((item, index) => {
-            const size = calcSize(item.defaultSize || 0, wrapperSize);
-            const minSize = calcSize(item.minSize || 0, wrapperSize);
-            const maxSize = calcSize(item.maxSize || 0, wrapperSize);
-            _itemSizes[index] = {
-                px: size,
-                minPx: minSize,
-                maxPx: maxSize,
-                percent: size / wrapperSize,
-                minPercent: minSize / wrapperSize,
-                maxPercent: maxSize / wrapperSize
-            };
+            sizes.forEach((item, index) => {
+                if (!item.px) {
+                    item.px = restItemSizes.pop() || 0;
+                    item.percent = item.px / wrapperSize;
+                }
 
-            noSizeCount += size > 0 ? 0 : 1;
-        });
-
-        const pxSum = _itemSizes.reduce((acc, cur) => acc + cur.px, 0);
-        const restSize = wrapperSize - pxSum;
-
-        _itemSizes = _itemSizes.map(item => {
-            if (item.px > 0 && item.percent > 0) {
-                return item;
-            }
-
-            const px = restSize / noSizeCount;
-
-            return {
-                ...item,
-                px,
-                percent: px / wrapperSize,
-            }
-        });
-        setItemSizeList(_itemSizes);
-        handleItemsStyle(_itemSizes);
-        props.onResize?.(_itemSizes.map(m => m.px), _itemSizes.map(m => m.percent));
-    }, [props.direction, wrapperRef.current]);
-
-    React.useEffect(() => {
-        const observer = new ResizeObserver((e) => {
-            const barsize = (props.items.length - 1) * (props.splitbar?.size || 1);
-            const wrapperSize = (props.direction === "vertical" ? (e[0].target?.clientHeight || 0) : (e[0].target?.clientWidth || 0)) - barsize;
-
-            itemSizeList.forEach((item) => {
-                item.px = item.percent * wrapperSize;
+                itemsSizeRef.current[index] = item;
+                const style = isPercent(props.items[index].size || 0) ? `calc(${item.percent * 100}% - ${minusNums[index]}px)` : `${item.px - minusNums[index]}px`;
+                itemsRef.current[index]?.setAttribute('style', `flex-basis: ${style}`);
             });
 
-            props.onResize?.(itemSizeList.map(m => m.px), itemSizeList.map(m => m.percent));
-        });
-
-        if (wrapperRef?.current) {
-            observer.observe(wrapperRef?.current);
-        }
-
-        return () => {
-            observer.disconnect();
-        }
-    }, [itemSizeList, props.direction, wrapperRef?.current]);
-
-    const calcSize = React.useCallback((size: number | string, wrapperSize: number = 0) => {
-        if (typeof size === 'number') {
-            return Math.abs(size);
-        }
-
-        if (typeof size === 'string') {
-            if (PX_REG.test(size)) {
-                return Math.abs(parseFloat(size.match(NUM_REG)?.[0] || '0'));
+            if ((props.splitbar?.size || 0) > 0) {
+                wrapperRef.current?.style.setProperty('--ihc-splitter-size', `${props.splitbar?.size}px`);
             }
 
-            if (PERCENT_REG.test(size)) {
-                return Math.abs(parseFloat(size.match(NUM_REG)?.[0] || '0') / 100) * wrapperSize;
+            if (props.splitbar?.color) {
+                wrapperRef.current?.style.setProperty('--ihc-splitter-color', `${props.splitbar.color}`);
             }
         }
-
-        return 0;
-    }, [wrapperRef.current]);
-
-    const handleItemsStyle = (inItemSizeList: ItemSizeProps[]) => {
-        inItemSizeList.forEach((item, index) => {
-            if (props.direction === 'vertical') {
-                const _style = [`height: ${(item.percent || 0) * 100}%`];
-
-                if (props.items[index].maxSize) {
-                    _style.push(`max-height: ${props.items[index].maxSize}`);
-                }
-
-                if (props.items[index].minSize) {
-                    _style.push(`min-height: ${props.items[index].minSize}`);
-                }
-                itemsRef.current[index]?.setAttribute('style', _style.join(';'));
-            } else {
-                const _style = [`width: ${(item.percent || 0) * 100}%`];
-                if (props.items[index].maxSize) {
-                    _style.push(`max-width: ${props.items[index].maxSize}`);
-                }
-
-                if (props.items[index].minSize) {
-                    _style.push(`min-width: ${props.items[index].minSize}`);
-                }
-                itemsRef.current[index]?.setAttribute('style', _style.join(';'));
-            }
-        })
-    };
+    }, [props.direction, props.items.length, wrapperRef.current, itemsRef.current.length]);
 
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
         e.persist();
-        const px1 = itemSizeList[index].px;
-        const px2 = itemSizeList[index + 1].px;
-        const item1 = itemSizeList[index];
-        const item2 = itemSizeList[index + 1];
-        const barsize = (props.items.length - 1) * (props.splitbar?.size || 1);
-        const wrapperSize = (props.direction === "vertical" ? (wrapperRef.current?.clientHeight || 0) : (wrapperRef.current?.clientWidth || 0)) - barsize;
+        const prevIdx = props.items.findLastIndex((item, idx) => idx <= index && item.resizable !== false);
+        const nextIdx = props.items.findIndex((item, idx) => idx > index && item.resizable !== false);
+        if (prevIdx === -1 || nextIdx === -1) return;
+
+        const minusNums = getMinusSizes();
+        const wrapperSize = getWrapperSize();
+        const prevSize = itemsSizeRef.current[prevIdx].px;
+        const nextSize = itemsSizeRef.current[nextIdx].px;
+
+        const updateItem = (item: ItemSizeProps, size: number, percent: number, idx: number) => {
+            item.px = size;
+            item.percent = percent;
+            const style = isPercent(props.items[idx].size || 0) ? `calc(${percent * 100}% - ${minusNums[idx]}px)` : `${size - minusNums[idx]}px`;
+            itemsRef.current[idx]?.setAttribute('style', `flex-basis:${style}`);
+        };
 
         const calcFunc = (offset: number) => {
-            const _px1 = px1 + offset;
-            const _px2 = px2 - offset;
-            const isMin1 = _px1 <= item1.minPx && item1.minPx > 0;
-            const isMin2 = _px2 <= item2.minPx && item2.minPx > 0;
-            const isMax1 = _px1 >= item1.maxPx && item1.maxPx > 0;
-            const isMax2 = _px2 >= item2.maxPx && item2.maxPx > 0;
+            const prevItem = itemsSizeRef.current[prevIdx];
+            const nextItem = itemsSizeRef.current[nextIdx];
+            const _prevSize = prevSize + offset;
+            const _nextSize = nextSize - offset;
+            const isPrevMin = _prevSize <= prevItem.min && prevItem.min > 0;
+            const isNextMin = _nextSize <= nextItem.min && nextItem.min > 0;
+            const isPrevMax = _prevSize >= prevItem.max && prevItem.max > 0;
+            const isNextMax = _nextSize >= nextItem.max && nextItem.max > 0;
 
-            if (_px1 >= 0 && _px2 >= 0 && !isMin1 && !isMin2 && !isMax1 && !isMax2) {
-                item1.px = _px1;
-                item1.percent = _px1 / wrapperSize;
-                item2.px = _px2;
-                item2.percent = _px2 / wrapperSize;
-                setItemSizeList([...itemSizeList]);
-                handleItemsStyle(itemSizeList);
-                props.onResize?.(itemSizeList.map(m => m.px), itemSizeList.map(m => m.percent));
+            // 在限制范围内可以改变
+            if (_prevSize >= minusNums[prevIdx] && _nextSize >= minusNums[nextIdx] && !isPrevMin && !isNextMin && !isPrevMax && !isNextMax) {
+                updateItem(prevItem, _prevSize, _prevSize / wrapperSize, prevIdx);
+                updateItem(nextItem, _nextSize, _nextSize / wrapperSize, nextIdx);
             }
         };
 
@@ -189,48 +122,118 @@ const Splitter: React.FC<SplitterProps> = (props) => {
                 const offsetY = mEvent.clientY - e.clientY;
                 calcFunc(offsetY);
             }
-
-            setIsResizing(true);
         };
 
         const onMouseUp = () => {
             setIsResizing(false);
-            document?.removeEventListener('mouseup', onMouseUp, false);
-            document?.removeEventListener('mousemove', onMouseMove, false);
+            window?.removeEventListener('mouseup', onMouseUp, false);
+            window?.removeEventListener('mousemove', onMouseMove, false);
         };
 
-        document?.addEventListener('mouseup', onMouseUp, false);
-        document?.addEventListener('mousemove', onMouseMove, false);
+        setIsResizing(true);
+        window?.addEventListener('mouseup', onMouseUp, false);
+        window?.addEventListener('mousemove', onMouseMove, false);
     };
 
-    const classes = cn('ihc-splitter-wrapper', {
-        'ihc-splitter-bordered': props.bordered,
-        'ihc-splitter-vertical': props.direction === 'vertical',
-        'ihc-splitter-horizontal': props.direction === 'horizontal',
-        'ihc-splitter-resizing': isResizing,
-    }, props.className);
+    /** 计算每个面板设置的大小范围 */
+    const calcItemSize = React.useCallback((item: SplitterItemProps, wrapperSize: number) => {
+        const itemSize: ItemSizeProps = {
+            px: 0,
+            percent: 0,
+            min: 0,
+            minPercent: 0,
+            max: 0,
+            maxPercent: 0,
+        };
+
+        const calc = (size: string | number, pxKey: keyof ItemSizeProps, percentKey: keyof ItemSizeProps) => {
+            if (isPercent(size)) {
+                itemSize[percentKey] = size as number;
+                itemSize[pxKey] = Math.round(itemSize[percentKey] * wrapperSize);
+            } else if (PX_REG.test(size?.toString() || '')) {
+                const px = parseFloat(size?.toString().match(NUM_REG)?.[0] || '0');
+
+                if (px > 0) {
+                    itemSize[pxKey] = Math.round(px);
+                    itemSize[percentKey] = itemSize[pxKey] / wrapperSize;
+                }
+            }
+        };
+
+        calc(item.size || 0, 'px', 'percent');
+        calc(item.min || 0, 'min', 'minPercent');
+        calc(item.max || 0, 'max', 'maxPercent');
+
+        return itemSize;
+    }, [wrapperRef.current]);
+
+    const getMinusSizes = React.useCallback(() => {
+        // 分割条占用的空间
+        const barSizeSum = (props.splitbar?.size || 1) * (props.items.length - 1);
+        // 分割条占用的空间平均分配到每个面板的空间上
+        const nums = distributeNumber(barSizeSum, props.items.length);
+        return nums;
+    }, [props.splitbar?.size, props.items.length]);
+
+    const distributeNumber = React.useCallback((total: number, parts: number) => {
+        const base = Math.floor(total / parts);
+        const remainder = total % parts;
+        return Array.from({ length: parts }, (_, i) => base + (i < remainder ? 1 : 0));
+    }, []);
+
+    const isPercent = React.useCallback((size: number | string) => {
+        return typeof size === 'number' && size >= 0 && size <= 1;
+    }, []);
+
+    const getWrapperSize = React.useCallback(() => {
+        return props.direction === 'vertical' ? (wrapperRef.current?.offsetHeight || 0) : (wrapperRef.current?.offsetWidth || 0);
+    }, [props.direction, wrapperRef.current]);
+
+    const getSplitbarCls = (index: number) => {
+        // const stateList = props.items.map(item => item.resizable);
+        // let nonresizable = stateList.filter(r => r !== false).length === 1;
+        // nonresizable = nonresizable || stateList[index] === false && stateList[index + 1] === false;
+        // nonresizable = nonresizable || (props.items[index + 1].resizable === false && index === props.items.length - 2);
+        // nonresizable = nonresizable || (props.items[index].resizable === false && index === 0);
+        // nonresizable = nonresizable || props.items.filter((item, idx) => item.resizable === false && index <= idx).length === index;
+        // nonresizable = nonresizable || props.items.filter((item, idx) => item.resizable === false && index > idx).length === (props.items.length - index - 1);
+
+        return cn('ihc-splitbar', {
+            'ihc-splitbar-horizontal': props.direction !== 'vertical',
+            'ihc-splitbar-vertical': props.direction === 'vertical',
+            // 'ihc-splitbar-nonresizable': nonresizable
+        });
+    };
+
+    const classes = React.useMemo(() => {
+        return cn(`ihc-splitter-wrapper`, {
+            'ihc-splitter-vertical': props.direction === 'vertical',
+            'ihc-splitter-horizontal': props.direction !== 'vertical',
+            'ihc-splitter-resizing': isResizing,
+        }, props.className);
+    }, [props.direction, props.className, isResizing]);
 
     return (
         <div ref={wrapperRef} className={classes} style={props.style}>
             {props.items.map((item, index) => {
-                return (<React.Fragment key={`splititem_${item.key || index}`}>
+                const key = `split_item_${item.key || index}`;
+
+                return (<React.Fragment key={key}>
                     <div
-                        key={`splititem_${item.key || index}`}
+                        key={key}
                         className={cn("ihc-splitter-item")}
                         ref={ref => itemsRef.current[index] = ref}
                     >
                         {item.content}
                     </div>
-                    {index < props.items.length - 1 && <Splitbar
-                        {...props.splitbar}
-                        key={`splitbar_${item.key || index}`}
-                        direction={props.direction}
+                    {index < props.items.length - 1 && <div
+                        className={getSplitbarCls(index)}
                         onMouseDown={(e) => handleMouseDown(e, index)}
                     />}
                 </React.Fragment>);
             })}
         </div>
-    );
+    )
 }
 
 export default Splitter;
