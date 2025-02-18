@@ -45,13 +45,13 @@ const Splitter: React.FC<SplitterProps> = (props) => {
             });
             const noSizeCount = sizes.filter(item => !item.px).length;
             const pxSum = sizes.reduce((sum, item) => sum + (item.px || 0), 0);
-            const eachRestSize = (wrapperSize - pxSum) / noSizeCount;
+            const restItemSizes = distributeNumber(wrapperSize - pxSum, noSizeCount);
             const barSizeSum = (props.splitbar?.size || 1) * (sizes.length - 1);
             const minusNums = distributeNumber(barSizeSum, props.items.length);
 
             sizes.forEach((item, index) => {
                 if (!item.px) {
-                    item.px = eachRestSize;
+                    item.px = restItemSizes.pop() || 0;
                     item.percent = item.px / wrapperSize;
                 }
 
@@ -67,29 +67,28 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         const wrapperSize = getWrapperSize();
         const isPrevUsePercent = isPercent(props.items[index].size || 0);
         const isNextUsePercent = isPercent(props.items[index + 1].size || 0);
-
         const prevSize = itemsSizeRef.current[index].px;
         const nextSize = itemsSizeRef.current[index + 1].px;
         const barSizeSum = (props.splitbar?.size || 1) * (props.items.length - 1);
         const minusNums = distributeNumber(barSizeSum, props.items.length);
 
         const calcFunc = (offset: number) => {
-            console.log(itemsSizeRef);
+            const prevItem = itemsSizeRef.current[index];
+            const nextItem = itemsSizeRef.current[index + 1];
             const _prevSize = prevSize + offset;
             const _nextSize = nextSize - offset;
+            const isPrevMin = _prevSize <= prevItem.min && prevItem.min > 0;
+            const isNextMin = _nextSize <= nextItem.min && nextItem.min > 0;
+            const isPrevMax = _prevSize >= prevItem.max && prevItem.max > 0;
+            const isNextMax = _nextSize >= nextItem.max && nextItem.max > 0;
 
-            const isMin1 = _prevSize <= itemsSizeRef.current[index].min && itemsSizeRef.current[index].min > 0;
-            const isMin2 = _nextSize <= itemsSizeRef.current[index + 1].min && itemsSizeRef.current[index + 1].min > 0;
-            const isMax1 = _prevSize >= itemsSizeRef.current[index].max && itemsSizeRef.current[index].max > 0;
-            const isMax2 = _nextSize >= itemsSizeRef.current[index + 1].max && itemsSizeRef.current[index + 1].max > 0;
-
-            if (_prevSize >= minusNums[index] && _nextSize >= minusNums[index + 1] && !isMin1 && !isMin2 && !isMax1 && !isMax2) {
-                itemsSizeRef.current[index].px = _prevSize;
-                itemsSizeRef.current[index].percent = _prevSize / wrapperSize;
-                itemsSizeRef.current[index + 1].px = _nextSize;
-                itemsSizeRef.current[index + 1].percent = _nextSize / wrapperSize;
-                const size1 = isPrevUsePercent ? `calc(${itemsSizeRef.current[index].percent * 100}% - ${minusNums[index]}px)` : `${itemsSizeRef.current[index].px - minusNums[index]}px`;
-                const size2 = isNextUsePercent ? `calc(${itemsSizeRef.current[index + 1].percent * 100}% - ${minusNums[index + 1]}px)` : `${itemsSizeRef.current[index + 1].px - minusNums[index + 1]}px`;
+            if (_prevSize >= minusNums[index] && _nextSize >= minusNums[index + 1] && !isPrevMin && !isNextMin && !isPrevMax && !isNextMax) {
+                prevItem.px = _prevSize;
+                prevItem.percent = _prevSize / wrapperSize;
+                nextItem.px = _nextSize;
+                nextItem.percent = _nextSize / wrapperSize;
+                const size1 = isPrevUsePercent ? `calc(${prevItem.percent * 100}% - ${minusNums[index]}px)` : `${prevItem.px - minusNums[index]}px`;
+                const size2 = isNextUsePercent ? `calc(${nextItem.percent * 100}% - ${minusNums[index + 1]}px)` : `${nextItem.px - minusNums[index + 1]}px`;
                 itemsRef.current[index]?.setAttribute('style', `flex-basis:${size1}`);
                 itemsRef.current[index + 1]?.setAttribute('style', `flex-basis:${size2}`);
             }
@@ -114,12 +113,12 @@ const Splitter: React.FC<SplitterProps> = (props) => {
 
         const onMouseUp = () => {
             setIsResizing(false);
-            document?.removeEventListener('mouseup', onMouseUp, false);
-            document?.removeEventListener('mousemove', onMouseMove, false);
+            window?.removeEventListener('mouseup', onMouseUp, false);
+            window?.removeEventListener('mousemove', onMouseMove, false);
         };
 
-        document?.addEventListener('mouseup', onMouseUp, false);
-        document?.addEventListener('mousemove', onMouseMove, false);
+        window?.addEventListener('mouseup', onMouseUp, false);
+        window?.addEventListener('mousemove', onMouseMove, false);
     };
 
     const calcItemSize = React.useCallback((item: SplitterItemProps, wrapperSize: number) => {
@@ -167,7 +166,7 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         return props.direction === 'vertical' ? (wrapperRef.current?.clientHeight || 0) : (wrapperRef.current?.clientWidth || 0);
     }, [props.direction, wrapperRef.current]);
 
-    const classes = cn('ihc-splitter-wrapper', {
+    const classes = cn(`ihc-splitter-wrapper`, {
         'ihc-splitter-vertical': props.direction === 'vertical',
         'ihc-splitter-horizontal': props.direction !== 'vertical',
         'ihc-splitter-resizing': isResizing,

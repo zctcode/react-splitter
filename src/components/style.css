@@ -38,3 +38,7 @@
     height: 100%;
     overflow: hidden;
 }
+
+.ihc-splitter-resizing>.ihc-splitter-item {
+    will-change: flex-basis;
+}

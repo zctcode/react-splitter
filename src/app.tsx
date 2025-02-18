@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import Splitter from './components';
 import Splitter1 from './components/Splitter';
@@ -23,6 +23,19 @@ const Panel = (props: PanelProps) => {
         </div>
     );
 };
+
+const T = () => {
+    useEffect(() => {
+        console.log('render');
+    }, [])
+    return Array.from({ length: 100 }).map((_, index) => (
+        <div key={index}>
+            {Array.from({ length: 10 }).map((__, index2) => <span style={{ display: 'inline-block', width: 100, height: 50 }} key={`${index}_${index2}`}>{`${index}_${index2}`}</span>)}
+        </div>
+    ));
+};
+
+const N = React.memo(T);
 
 function App() {
     const [sizes, setSizes] = useState<number[]>([]);
@@ -111,7 +124,10 @@ function App() {
                     content: 'mmm'
                 }, {
                     // size: '100px',
-                    content: 'mmm'
+                    key: 'test',
+                    content: (<div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
+                        {/* <N /> */}
+                    </div>)
                 }]}
             />
         </div>
