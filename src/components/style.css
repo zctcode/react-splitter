@@ -42,7 +42,7 @@
     cursor: col-resize;
 }
 
-.ihc-splitbar-nonresizable {
+.ihc-splitbar-disabled {
     cursor: default;
 }
 

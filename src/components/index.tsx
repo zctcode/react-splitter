@@ -146,7 +146,7 @@ const Splitter: React.FC<SplitterProps> = (props) => {
             maxPercent: 0,
         };
 
-        const calc = (size: string | number, pxKey: keyof ItemSizeProps, percentKey: keyof ItemSizeProps) => {
+        const calcFunc = (size: string | number, pxKey: keyof ItemSizeProps, percentKey: keyof ItemSizeProps) => {
             if (isPercent(size)) {
                 itemSize[percentKey] = size as number;
                 itemSize[pxKey] = Math.round(itemSize[percentKey] * wrapperSize);
@@ -160,9 +160,9 @@ const Splitter: React.FC<SplitterProps> = (props) => {
             }
         };
 
-        calc(item.size || 0, 'px', 'percent');
-        calc(item.min || 0, 'min', 'minPercent');
-        calc(item.max || 0, 'max', 'maxPercent');
+        calcFunc(item.size || 0, 'px', 'percent');
+        calcFunc(item.min || 0, 'min', 'minPercent');
+        calcFunc(item.max || 0, 'max', 'maxPercent');
 
         return itemSize;
     }, [wrapperRef.current]);
@@ -190,18 +190,13 @@ const Splitter: React.FC<SplitterProps> = (props) => {
     }, [props.direction, wrapperRef.current]);
 
     const getSplitbarCls = (index: number) => {
-        // const stateList = props.items.map(item => item.resizable);
-        // let nonresizable = stateList.filter(r => r !== false).length === 1;
-        // nonresizable = nonresizable || stateList[index] === false && stateList[index + 1] === false;
-        // nonresizable = nonresizable || (props.items[index + 1].resizable === false && index === props.items.length - 2);
-        // nonresizable = nonresizable || (props.items[index].resizable === false && index === 0);
-        // nonresizable = nonresizable || props.items.filter((item, idx) => item.resizable === false && index <= idx).length === index;
-        // nonresizable = nonresizable || props.items.filter((item, idx) => item.resizable === false && index > idx).length === (props.items.length - index - 1);
+        let disabled = props.items.slice(0, index + 1).filter(item => item.resizable !== false).length === 0;
+        disabled = disabled || props.items.slice(index + 1).filter(item => item.resizable !== false).length === 0;
 
         return cn('ihc-splitbar', {
             'ihc-splitbar-horizontal': props.direction !== 'vertical',
             'ihc-splitbar-vertical': props.direction === 'vertical',
-            // 'ihc-splitbar-nonresizable': nonresizable
+            'ihc-splitbar-disabled': disabled
         });
     };
 

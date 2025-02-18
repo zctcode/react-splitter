@@ -50,75 +50,37 @@ function App() {
 
     return (
         <div className="container">
-            {/* <Splitter
-                splitbar={{ size: 4 }}
-                direction="vertical"
-                onResize={(sizes, percents) => {
-                    setSizes(sizes);
-                    setPercents(percents);
-                }}
-                items={[{
-                    minSize: 230,
-                    content: <Splitter
-                        splitbar={{ size: 4 }}
-                        onResize={(sizes, percents) => {
-                            setSubSizes(sizes);
-                            setSubPercents(percents);
-                        }}
-                        items={[
-                            {
-                                defaultSize: '25%',
-                                minSize: 230,
-                                content: <Panel wSize={subSizes[0] || 0} wPercent={subPercents[0] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
-                            },
-                            {
-                                minSize: 230,
-                                content: <Panel wSize={subSizes[1] || 0} wPercent={subPercents[1] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
-                            },
-                            {
-                                defaultSize: '25%',
-                                minSize: 230,
-                                content: <Panel wSize={subSizes[2] || 0} wPercent={subPercents[2] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
-                            }
-                        ]}
-                    />,
-                }, {
-                    defaultSize: '30%',
-                    minSize: 230,
-                    content: <Panel wSize={subSizes.reduce((prev, curr) => prev + curr, 0)} wPercent={1} hSize={sizes[1] || 0} hPercent={percents[1] || 0} />
-                }]}
-            /> */}
-
             <Splitter
-                splitbar={{ size: 5, color: 'green' }}
+                splitbar={{ size: 5 }}
                 direction="vertical"
                 // onResize={(sizes, percents) => {
                 //     setSizes(sizes);
                 //     setPercents(percents);
                 // }}
                 items={[{
-                    // size: '230px',
-                    content: '22',
-                    // content: <Splitter
-                    //     splitbar={{ size: 4 }}
-                    //     // onResize={(sizes, percents) => {
-                    //     //     setSubSizes(sizes);
-                    //     //     setSubPercents(percents);
-                    //     // }}
-                    //     items={[
-                    //         {
-                    //             size: 0.25,
-                    //             // max: 0.5,
-                    //             content: <Panel wSize={subSizes[0] || 0} wPercent={subPercents[0] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
-                    //         },
-                    //         {
-                    //             content: <Panel wSize={subSizes[1] || 0} wPercent={subPercents[1] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
-                    //         },
-                    //         {
-                    //             content: <Panel wSize={subSizes[2] || 0} wPercent={subPercents[2] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
-                    //         }
-                    //     ]}
-                    // />,
+                    size: '230px',
+                    // content: '22',
+                    resizable: false,
+                    content: <Splitter
+                        splitbar={{ size: 4 }}
+                        // onResize={(sizes, percents) => {
+                        //     setSubSizes(sizes);
+                        //     setSubPercents(percents);
+                        // }}
+                        items={[
+                            {
+                                size: 0.25,
+                                // max: 0.5,
+                                content: <Panel wSize={subSizes[0] || 0} wPercent={subPercents[0] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
+                            },
+                            {
+                                content: <Panel wSize={subSizes[1] || 0} wPercent={subPercents[1] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
+                            },
+                            {
+                                content: <Panel wSize={subSizes[2] || 0} wPercent={subPercents[2] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
+                            }
+                        ]}
+                    />,
                 }, {
                     size: '200px',
                     // min: '100px',
@@ -136,6 +98,12 @@ function App() {
                     // min: '100px',
                     // max: '300px',
                     content: 'ccc',
+                    resizable: false
+                }, {
+                    // size: sizes[0] || 0,
+                    // min: '100px',
+                    // max: '300px',
+                    content: 'ddd',
                     // resizable: false
                 }]}
             />
