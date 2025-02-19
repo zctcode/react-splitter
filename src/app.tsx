@@ -55,18 +55,20 @@ function App() {
             <Splitter
                 splitbar={{ size: 5 }}
                 direction="vertical"
+                className='11'
                 onResize={(sizes) => {
                     setSizes(sizes);
                 }}
                 items={[{
                     size: '230px',
                     // content: '22',
-                    resizable: false,
+                    // resizable: false,
                     content: <Splitter
                         splitbar={{ size: 4 }}
                         onResize={(sizes) => {
                             setSubSizes(sizes);
                         }}
+                        className='22'
                         items={[
                             {
                                 size: '200px',
@@ -97,10 +99,10 @@ function App() {
                     // resizable: false
                 }, {
                     // size: sizes[0] || 0,
-                    // min: '100px',
-                    // max: '300px',
+                    min: '100px',
+                    max: '300px',
                     content: 'ccc',
-                    resizable: false
+                    // resizable: false
                 }, {
                     // size: sizes[0] || 0,
                     // min: '100px',

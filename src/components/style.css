@@ -28,14 +28,14 @@
     background-color: var(--ihc-splitter-color);
 }
 
-.ihc-splitbar-vertical {
+.ihc-splitter-vertical>.ihc-splitbar {
     height: var(--ihc-splitter-size);
     min-height: var(--ihc-splitter-size);
     width: 100%;
     cursor: row-resize;
 }
 
-.ihc-splitbar-horizontal {
+.ihc-splitter-horizontal>.ihc-splitbar {
     width: var(--ihc-splitter-size);
     min-width: var(--ihc-splitter-size);
     height: 100%;
@@ -47,11 +47,12 @@
 }
 
 .ihc-splitter-item {
+    flex-basis: 0;
     overflow: hidden;
-    transition: flex-basis .15s ease-in-out;
+    transition: flex-basis 100ms linear;
 }
 
 .ihc-splitter-resizing>.ihc-splitter-item {
     will-change: flex-basis;
-    transition: flex-basis 0s ease-in-out;
+    transition: flex-basis 0ms linear;
 }

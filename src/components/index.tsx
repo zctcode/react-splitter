@@ -19,7 +19,7 @@ export interface SplitterProps {
     onResize?: (sizes: { px: number, percent: number }[]) => void;
 }
 
-export interface SplitbarProps {
+interface SplitbarProps {
     size?: number;
     color?: string;
 }
@@ -36,17 +36,53 @@ interface ItemSizeProps {
 const PX_REG = new RegExp('\\d+(px)$');
 const NUM_REG = new RegExp('\\d+\\.?\\d*');
 
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number = 100): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout> | null;
+    return function (...args: Parameters<T>): void {
+        clearTimeout(timeout as ReturnType<typeof setTimeout>);
+        //@ts-ignore
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
 const Splitter: React.FC<SplitterProps> = (props) => {
     const wrapperRef = React.useRef<HTMLDivElement>(null);
+    const lastWrapperSize = React.useRef({ width: 0, height: 0 });
     const itemsRef = React.useRef<(HTMLDivElement | null)[]>([]);
+    const direction = props.direction === 'vertical' ? 'vertical' : 'horizontal';
     const itemsSizeRef = React.useRef<ItemSizeProps[]>([]);
     const [isResizing, setIsResizing] = React.useState(false);
 
     React.useEffect(() => {
-        if (wrapperRef.current) {
-            initItemsSize();
+        initSplitbar();
+    }, []);
+
+    React.useEffect(() => {
+        if (!wrapperRef.current) return;
+        initItemsSize();
+        lastWrapperSize.current = { width: wrapperRef.current.offsetWidth, height: wrapperRef.current.offsetHeight };
+
+        const observer = new ResizeObserver(debounce((entries) => {
+            if (!entries.length) return;
+            const { offsetWidth, offsetHeight } = entries[0].target;
+            const widthChanged = direction === 'horizontal' && offsetWidth !== lastWrapperSize.current.width;
+            const heightChanged = direction === 'vertical' && offsetHeight !== lastWrapperSize.current.height;
+
+            if (widthChanged || heightChanged) {
+                initItemsSize();
+                props.onResize?.(itemsSizeRef.current.map(({ px, percent }) => ({ px, percent })));
+            }
+
+            lastWrapperSize.current = { width: offsetWidth, height: offsetHeight };
+        }));
+
+        observer.observe(wrapperRef.current);
+
+        return () => {
+            wrapperRef.current && observer.unobserve(wrapperRef.current);
+            observer.disconnect();
         }
-    }, [props.direction, wrapperRef.current]);
+    }, [direction, wrapperRef.current]);
 
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
         e.persist();
@@ -54,34 +90,37 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         const nextIdx = props.items.findIndex((item, idx) => idx > index && item.resizable !== false);
         if (prevIdx === -1 || nextIdx === -1) return;
 
-        const minusNums = getMinusSizes();
+        const barSizeSum = (props.splitbar?.size || 1) * (props.items.length - 1);
+        const minusSizes = distributeNumber(barSizeSum, props.items.length);
         const wrapperSize = getWrapperSize();
-        const prevSize = itemsSizeRef.current[prevIdx].px;
-        const nextSize = itemsSizeRef.current[nextIdx].px;
+        const prevItemSize = itemsSizeRef.current[prevIdx].px;
+        const nextItemSize = itemsSizeRef.current[nextIdx].px;
 
-        const updateItem = (item: ItemSizeProps, size: number, percent: number, idx: number) => {
+        const updateItem = (size: number, idx: number) => {
+            const item = itemsSizeRef.current[idx];
             item.px = size;
-            item.percent = percent;
+            item.percent = size / wrapperSize;
             const style = isPercent(props.items[idx].size || 0)
-                ? `calc(${percent * 100}% - ${minusNums[idx]}px)`
-                : `${size - minusNums[idx]}px`;
+                ? `calc(${item.percent * 100}% - ${minusSizes[idx]}px)`
+                : `${item.px - minusSizes[idx]}px`;
             itemsRef.current[idx]?.setAttribute('style', `flex-basis:${style}`);
         };
 
+        const isRational = (size: number, idx: number) => {
+            const item = itemsSizeRef.current[idx];
+            const outMin = item.min > 0 && size <= item.min;
+            const outMax = item.max > 0 && size >= item.max;
+            return !outMin && !outMax && size >= minusSizes[idx];
+        }
+
         const calcFunc = (offset: number) => {
-            const prevItem = itemsSizeRef.current[prevIdx];
-            const nextItem = itemsSizeRef.current[nextIdx];
-            const _prevSize = prevSize + offset;
-            const _nextSize = nextSize - offset;
-            const isPrevMin = _prevSize <= prevItem.min && prevItem.min > 0;
-            const isNextMin = _nextSize <= nextItem.min && nextItem.min > 0;
-            const isPrevMax = _prevSize >= prevItem.max && prevItem.max > 0;
-            const isNextMax = _nextSize >= nextItem.max && nextItem.max > 0;
+            const prevSize = prevItemSize + offset;
+            const nextSize = nextItemSize - offset;
 
             // 在限制范围内可以改变
-            if (_prevSize >= minusNums[prevIdx] && _nextSize >= minusNums[nextIdx] && !isPrevMin && !isNextMin && !isPrevMax && !isNextMax) {
-                updateItem(prevItem, _prevSize, _prevSize / wrapperSize, prevIdx);
-                updateItem(nextItem, _nextSize, _nextSize / wrapperSize, nextIdx);
+            if (isRational(prevSize, prevIdx) && isRational(nextSize, nextIdx)) {
+                updateItem(prevSize, prevIdx);
+                updateItem(nextSize, nextIdx);
                 props.onResize?.(itemsSizeRef.current.map(({ px, percent }) => ({ px, percent })));
             }
         };
@@ -90,12 +129,12 @@ const Splitter: React.FC<SplitterProps> = (props) => {
             mEvent.preventDefault();
             mEvent.stopPropagation();
 
-            if (props.direction !== 'vertical') {
+            if (direction === 'horizontal') {
                 const offsetX = mEvent.clientX - e.clientX;
                 calcFunc(offsetX);
             }
 
-            if (props.direction === 'vertical') {
+            if (direction === 'vertical') {
                 const offsetY = mEvent.clientY - e.clientY;
                 calcFunc(offsetY);
             }
@@ -112,30 +151,7 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         window?.addEventListener('mousemove', onMouseMove, false);
     };
 
-    const initItemsSize = () => {
-        const wrapperSize = getWrapperSize();
-        const sizes = props.items.map((item) => {
-            return calcItemSize(item, wrapperSize);
-        });
-        const noSizeCount = sizes.filter(item => !item.px).length;
-        const pxSum = sizes.reduce((sum, item) => sum + (item.px || 0), 0);
-        // 未指定尺寸的item均分剩余空间
-        const restItemSizes = distributeNumber(wrapperSize - pxSum, noSizeCount);
-        const minusNums = getMinusSizes();
-
-        sizes.forEach((item, index) => {
-            if (!item.px) {
-                item.px = restItemSizes.shift() || 0;
-                item.percent = item.px / wrapperSize;
-            }
-
-            itemsSizeRef.current[index] = item;
-            const style = isPercent(props.items[index].size || 0)
-                ? `calc(${item.percent * 100}% - ${minusNums[index]}px)`
-                : `${item.px - minusNums[index]}px`;
-            itemsRef.current[index]?.setAttribute('style', `flex-basis: ${style}`);
-        });
-
+    const initSplitbar = () => {
         if ((props.splitbar?.size || 0) > 0) {
             wrapperRef.current?.style.setProperty('--ihc-splitter-size', `${props.splitbar?.size}px`);
         }
@@ -145,8 +161,35 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         }
     }
 
+    const initItemsSize = () => {
+        const barSizeSum = (props.splitbar?.size || 1) * (props.items.length - 1);
+        const minusSizes = distributeNumber(barSizeSum, props.items.length)
+        const wrapperSize = getWrapperSize();
+
+        const sizes = props.items.map((item) => {
+            return calcItemInitSize(item, wrapperSize);
+        });
+        const noSizeCount = sizes.filter(item => !item.px).length;
+        const pxSum = sizes.reduce((sum, item) => sum + (item.px || 0), 0);
+        // 未指定尺寸的item均分剩余空间
+        const restItemSizes = distributeNumber(wrapperSize - pxSum, noSizeCount);
+
+        sizes.forEach((item, index) => {
+            if (!item.px) {
+                item.px = restItemSizes.shift() || 0;
+                item.percent = item.px / wrapperSize;
+            }
+
+            itemsSizeRef.current[index] = item;
+            const style = isPercent(props.items[index].size || 0)
+                ? `calc(${item.percent * 100}% - ${minusSizes[index]}px)`
+                : `${item.px - minusSizes[index]}px`;
+            itemsRef.current[index]?.setAttribute('style', `flex-basis: ${style}`);
+        });
+    }
+
     /** 计算每个面板设置的大小范围 */
-    const calcItemSize = React.useCallback((item: SplitterItemProps, wrapperSize: number) => {
+    const calcItemInitSize = React.useCallback((item: SplitterItemProps, wrapperSize: number) => {
         const itemSize: ItemSizeProps = {
             px: 0,
             percent: 0,
@@ -177,14 +220,6 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         return itemSize;
     }, [wrapperRef.current]);
 
-    const getMinusSizes = () => {
-        // 分割条占用的空间
-        const barSizeSum = (props.splitbar?.size || 1) * (props.items.length - 1);
-        // 分割条占用的空间平均分配到每个面板的空间上
-        const nums = distributeNumber(barSizeSum, props.items.length);
-        return nums;
-    };
-
     const distributeNumber = React.useCallback((total: number, parts: number) => {
         const base = Math.floor(total / parts);
         const remainder = total % parts;
@@ -196,7 +231,7 @@ const Splitter: React.FC<SplitterProps> = (props) => {
     };
 
     const getWrapperSize = () => {
-        return props.direction === 'vertical' ? (wrapperRef.current?.offsetHeight || 0) : (wrapperRef.current?.offsetWidth || 0);
+        return direction === 'vertical' ? (wrapperRef.current?.offsetHeight || 0) : (wrapperRef.current?.offsetWidth || 0);
     };
 
     const getSplitbarCls = (index: number) => {
@@ -204,19 +239,15 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         disabled = disabled || props.items.slice(index + 1).filter(item => item.resizable !== false).length === 0;
 
         return cn('ihc-splitbar', {
-            'ihc-splitbar-horizontal': props.direction !== 'vertical',
-            'ihc-splitbar-vertical': props.direction === 'vertical',
             'ihc-splitbar-disabled': disabled
         });
     };
 
     const classes = React.useMemo(() => {
-        return cn(`ihc-splitter-wrapper`, {
-            'ihc-splitter-vertical': props.direction === 'vertical',
-            'ihc-splitter-horizontal': props.direction !== 'vertical',
+        return cn('ihc-splitter-wrapper', `ihc-splitter-${direction}`, {
             'ihc-splitter-resizing': isResizing,
         }, props.className);
-    }, [props.direction, props.className, isResizing]);
+    }, [direction, props.className, isResizing]);
 
     return (
         <div ref={wrapperRef} className={classes} style={props.style}>
