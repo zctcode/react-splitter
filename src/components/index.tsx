@@ -90,8 +90,7 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         const nextIdx = props.items.findIndex((item, idx) => idx > index && item.resizable !== false);
         if (prevIdx === -1 || nextIdx === -1) return;
 
-        const barSizeSum = (props.splitbar?.size || 1) * (props.items.length - 1);
-        const minusSizes = distributeNumber(barSizeSum, props.items.length);
+        const minusSizes = getMinusSizes();
         const wrapperSize = getWrapperSize();
         const prevItemSize = itemsSizeRef.current[prevIdx].px;
         const nextItemSize = itemsSizeRef.current[nextIdx].px;
@@ -162,8 +161,7 @@ const Splitter: React.FC<SplitterProps> = (props) => {
     }
 
     const initItemsSize = () => {
-        const barSizeSum = (props.splitbar?.size || 1) * (props.items.length - 1);
-        const minusSizes = distributeNumber(barSizeSum, props.items.length)
+        const minusSizes = getMinusSizes();
         const wrapperSize = getWrapperSize();
 
         const sizes = props.items.map((item) => {
@@ -233,6 +231,11 @@ const Splitter: React.FC<SplitterProps> = (props) => {
     const getWrapperSize = () => {
         return direction === 'vertical' ? (wrapperRef.current?.offsetHeight || 0) : (wrapperRef.current?.offsetWidth || 0);
     };
+
+    const getMinusSizes = () => {
+        const barSizeSum = (props.splitbar?.size || 1) * (props.items.length - 1);
+        return distributeNumber(barSizeSum, props.items.length);
+    }
 
     const getSplitbarCls = (index: number) => {
         let disabled = props.items.slice(0, index + 1).filter(item => item.resizable !== false).length === 0;
