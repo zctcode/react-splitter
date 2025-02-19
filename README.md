@@ -18,6 +18,8 @@ Englist | <a href="https://github.com/zctcode/react-splitter/blob/main/README-zh
 npm install @ihatecode/react-splitter
 # yarn
 yarn add @ihatecode/react-splitter
+# pnpm
+pnpm add @ihatecode/react-splitter
 ```
 
 ## Usage

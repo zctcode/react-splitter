@@ -12,12 +12,15 @@ interface PanelProps {
 }
 
 const Panel = (props: PanelProps) => {
+    useEffect(() => {
+        console.log('Panel render');
+    }, [])
     return (
         <div className="splitter-content">
             <div>
-                {`Width： ${props.wSize?.toFixed(1)}px （${(props.wPercent * 100).toFixed(2)}%）`}
+                {`Width： ${props.wSize}px （${(props.wPercent * 100).toFixed(2)}%）`}
                 <br />
-                {`Height：${props.hSize?.toFixed(1)}px （${(props.hPercent * 100).toFixed(2)}%）`}
+                {`Height：${props.hSize}px （${(props.hPercent * 100).toFixed(2)}%）`}
             </div>
         </div>
     );
@@ -37,15 +40,14 @@ const T = () => {
 const N = React.memo(T);
 
 function App() {
-    const [sizes, setSizes] = useState<number[]>([]);
-    const [percents, setPercents] = useState<number[]>([]);
-    const [subSizes, setSubSizes] = useState<number[]>([]);
-    const [subPercents, setSubPercents] = useState<number[]>([]);
+    const [sizes, setSizes] = useState<{ px: number, percent: number }[]>([]);
+    const [subSizes, setSubSizes] = useState<{ px: number, percent: number }[]>([]);
+    const [change, setChange] = useState(false);
 
     useEffect(() => {
         setTimeout(() => {
-            setSizes([0.2]);
-        }, 2 * 1000)
+            setChange(true);
+        }, 3000)
     }, [])
 
     return (
@@ -53,33 +55,33 @@ function App() {
             <Splitter
                 splitbar={{ size: 5 }}
                 direction="vertical"
-                // onResize={(sizes, percents) => {
-                //     setSizes(sizes);
-                //     setPercents(percents);
-                // }}
+                onResize={(sizes) => {
+                    setSizes(sizes);
+                }}
                 items={[{
                     size: '230px',
                     // content: '22',
                     resizable: false,
                     content: <Splitter
                         splitbar={{ size: 4 }}
-                        // onResize={(sizes, percents) => {
-                        //     setSubSizes(sizes);
-                        //     setSubPercents(percents);
-                        // }}
+                        onResize={(sizes) => {
+                            setSubSizes(sizes);
+                        }}
                         items={[
                             {
-                                size: 0.25,
+                                size: '200px',
                                 // max: 0.5,
-                                content: <Panel wSize={subSizes[0] || 0} wPercent={subPercents[0] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
+                                content: <N />
                             },
                             {
-                                content: <Panel wSize={subSizes[1] || 0} wPercent={subPercents[1] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
+                                content: 'mm'
                             },
                             {
-                                content: <Panel wSize={subSizes[2] || 0} wPercent={subPercents[2] || 0} hSize={sizes[0] || 0} hPercent={percents[0] || 0} />
+                                content: <Panel wSize={subSizes[2]?.px || 0} wPercent={subSizes[2]?.percent || 0} hSize={sizes[0]?.px || 0} hPercent={sizes[0]?.percent || 0} />
                             }
-                        ]}
+                        ].concat(change ? [{
+                            content: <div>ddd</div>
+                        }] : [])}
                     />,
                 }, {
                     size: '200px',
@@ -105,7 +107,7 @@ function App() {
                     // max: '300px',
                     content: 'ddd',
                     // resizable: false
-                }]}
+                }].slice(0, change ? 4 : 5)}
             />
         </div>
     );

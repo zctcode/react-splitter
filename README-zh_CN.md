@@ -18,6 +18,8 @@
 npm install @ihatecode/react-splitter
 # yarn
 yarn add @ihatecode/react-splitter
+# pnpm
+pnpm add @ihatecode/react-splitter
 ```
 
 ## 使用

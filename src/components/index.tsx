@@ -16,6 +16,7 @@ export interface SplitterProps {
     direction?: 'horizontal' | 'vertical';
     splitbar?: SplitbarProps;
     items: SplitterItemProps[];
+    onResize?: (sizes: { px: number, percent: number }[]) => void;
 }
 
 export interface SplitbarProps {
@@ -43,36 +44,9 @@ const Splitter: React.FC<SplitterProps> = (props) => {
 
     React.useEffect(() => {
         if (wrapperRef.current) {
-            const wrapperSize = getWrapperSize();
-            const sizes = props.items.map((item) => {
-                return calcItemSize(item, wrapperSize);
-            });
-            const noSizeCount = sizes.filter(item => !item.px).length;
-            const pxSum = sizes.reduce((sum, item) => sum + (item.px || 0), 0);
-            // 未指定尺寸的item均分剩余空间
-            const restItemSizes = distributeNumber(wrapperSize - pxSum, noSizeCount);
-            const minusNums = getMinusSizes();
-
-            sizes.forEach((item, index) => {
-                if (!item.px) {
-                    item.px = restItemSizes.pop() || 0;
-                    item.percent = item.px / wrapperSize;
-                }
-
-                itemsSizeRef.current[index] = item;
-                const style = isPercent(props.items[index].size || 0) ? `calc(${item.percent * 100}% - ${minusNums[index]}px)` : `${item.px - minusNums[index]}px`;
-                itemsRef.current[index]?.setAttribute('style', `flex-basis: ${style}`);
-            });
-
-            if ((props.splitbar?.size || 0) > 0) {
-                wrapperRef.current?.style.setProperty('--ihc-splitter-size', `${props.splitbar?.size}px`);
-            }
-
-            if (props.splitbar?.color) {
-                wrapperRef.current?.style.setProperty('--ihc-splitter-color', `${props.splitbar.color}`);
-            }
+            initItemsSize();
         }
-    }, [props.direction, props.items.length, wrapperRef.current, itemsRef.current.length]);
+    }, [props.direction, wrapperRef.current]);
 
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
         e.persist();
@@ -88,7 +62,9 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         const updateItem = (item: ItemSizeProps, size: number, percent: number, idx: number) => {
             item.px = size;
             item.percent = percent;
-            const style = isPercent(props.items[idx].size || 0) ? `calc(${percent * 100}% - ${minusNums[idx]}px)` : `${size - minusNums[idx]}px`;
+            const style = isPercent(props.items[idx].size || 0)
+                ? `calc(${percent * 100}% - ${minusNums[idx]}px)`
+                : `${size - minusNums[idx]}px`;
             itemsRef.current[idx]?.setAttribute('style', `flex-basis:${style}`);
         };
 
@@ -106,6 +82,7 @@ const Splitter: React.FC<SplitterProps> = (props) => {
             if (_prevSize >= minusNums[prevIdx] && _nextSize >= minusNums[nextIdx] && !isPrevMin && !isNextMin && !isPrevMax && !isNextMax) {
                 updateItem(prevItem, _prevSize, _prevSize / wrapperSize, prevIdx);
                 updateItem(nextItem, _nextSize, _nextSize / wrapperSize, nextIdx);
+                props.onResize?.(itemsSizeRef.current.map(({ px, percent }) => ({ px, percent })));
             }
         };
 
@@ -134,6 +111,39 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         window?.addEventListener('mouseup', onMouseUp, false);
         window?.addEventListener('mousemove', onMouseMove, false);
     };
+
+    const initItemsSize = () => {
+        const wrapperSize = getWrapperSize();
+        const sizes = props.items.map((item) => {
+            return calcItemSize(item, wrapperSize);
+        });
+        const noSizeCount = sizes.filter(item => !item.px).length;
+        const pxSum = sizes.reduce((sum, item) => sum + (item.px || 0), 0);
+        // 未指定尺寸的item均分剩余空间
+        const restItemSizes = distributeNumber(wrapperSize - pxSum, noSizeCount);
+        const minusNums = getMinusSizes();
+
+        sizes.forEach((item, index) => {
+            if (!item.px) {
+                item.px = restItemSizes.shift() || 0;
+                item.percent = item.px / wrapperSize;
+            }
+
+            itemsSizeRef.current[index] = item;
+            const style = isPercent(props.items[index].size || 0)
+                ? `calc(${item.percent * 100}% - ${minusNums[index]}px)`
+                : `${item.px - minusNums[index]}px`;
+            itemsRef.current[index]?.setAttribute('style', `flex-basis: ${style}`);
+        });
+
+        if ((props.splitbar?.size || 0) > 0) {
+            wrapperRef.current?.style.setProperty('--ihc-splitter-size', `${props.splitbar?.size}px`);
+        }
+
+        if (props.splitbar?.color) {
+            wrapperRef.current?.style.setProperty('--ihc-splitter-color', `${props.splitbar.color}`);
+        }
+    }
 
     /** 计算每个面板设置的大小范围 */
     const calcItemSize = React.useCallback((item: SplitterItemProps, wrapperSize: number) => {
@@ -167,13 +177,13 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         return itemSize;
     }, [wrapperRef.current]);
 
-    const getMinusSizes = React.useCallback(() => {
+    const getMinusSizes = () => {
         // 分割条占用的空间
         const barSizeSum = (props.splitbar?.size || 1) * (props.items.length - 1);
         // 分割条占用的空间平均分配到每个面板的空间上
         const nums = distributeNumber(barSizeSum, props.items.length);
         return nums;
-    }, [props.splitbar?.size, props.items.length]);
+    };
 
     const distributeNumber = React.useCallback((total: number, parts: number) => {
         const base = Math.floor(total / parts);
@@ -181,13 +191,13 @@ const Splitter: React.FC<SplitterProps> = (props) => {
         return Array.from({ length: parts }, (_, i) => base + (i < remainder ? 1 : 0));
     }, []);
 
-    const isPercent = React.useCallback((size: number | string) => {
+    const isPercent = (size: number | string) => {
         return typeof size === 'number' && size >= 0 && size <= 1;
-    }, []);
+    };
 
-    const getWrapperSize = React.useCallback(() => {
+    const getWrapperSize = () => {
         return props.direction === 'vertical' ? (wrapperRef.current?.offsetHeight || 0) : (wrapperRef.current?.offsetWidth || 0);
-    }, [props.direction, wrapperRef.current]);
+    };
 
     const getSplitbarCls = (index: number) => {
         let disabled = props.items.slice(0, index + 1).filter(item => item.resizable !== false).length === 0;
