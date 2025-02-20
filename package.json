@@ -1,6 +1,6 @@
 {
   "name": "@ihatecode/react-splitter",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A split pane component written in React.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -13,7 +13,8 @@
     "build": "cross-env NODE_ENV=production webpack -c scripts/webpack.config.js --mode production",
     "rm": "node scripts/fs.config.js rm",
     "cp": "node scripts/fs.config.js cp",
-    "tsc": "npm run rm && tsc --project tsconfig.build.json && npm run cp"
+    "tsc": "npm run rm && tsc --project tsconfig.build.json && npm run cp && npm run terser",
+    "terser": "npx terser @ihatecode/react-splitter/lib/index.js -o @ihatecode/react-splitter/lib/index.js"
   },
   "keywords": [
     "ihatecode",
@@ -54,6 +55,7 @@
     "sass": "^1.84.0",
     "sass-loader": "^16.0.4",
     "style-loader": "^3.3.3",
+    "terser": "^5.39.0",
     "ts-loader": "^9.4.4",
     "typescript": "^5.1.6",
     "webpack": "^5.88.2",
