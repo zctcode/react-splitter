@@ -18,6 +18,8 @@
 npm install @ihatecode/react-splitter
 # yarn
 yarn add @ihatecode/react-splitter
+# pnpm
+pnpm add @ihatecode/react-splitter
 ```
 
 ## 使用
@@ -29,19 +31,19 @@ import '@ihatecode/react-splitter/lib/style.css';
 
 const App: React.FC = () => {
   return (
-    <Splitter
+      <Splitter
         items={[
             {
-                defaultSize:200,
-                minSize:100,
-                maxSize:300,
-                content:<div>Left</div>
+                size:200,
+                min:100,
+                max:300,
+                content:<div>左</div>
             },
             {
-                defaultSize:200,
-                minSize:100,
-                maxSize:300,
-                content:<div>Right</div>
+                size:'50%',
+                min:'25%',
+                max:'75%',
+                content:<div>右</div>
             }]
         }
     />
@@ -60,13 +62,13 @@ export default App;
 #### Splitter props
 |参数|说明|类型|是否必须|默认值|
 |-|-|-|:-:|:-:|
-|bordered|需要要边框|boolean|否|false|
+|resizable|是否可调整大小|boolean|否|true|
 |className|自定义样式|string|否||
 |style|自定义样式|object|否||
 |direction|分割方向，可选值：'horizontal'、'vertical'|string|否|'horizontal'|
 |splitbar|分割条配置|object|否||
 |items|分割内容配置|Array|是||
-|onResize|分割条拖动回调|(sizes: number[], percents: number[]) => void|否||
+|onResize|分割条拖动回调|(sizes: { px: number, percent: number }[]) => void|否||
 
 #### Splitbar props
 |参数|说明|类型|是否必须|默认值|
@@ -78,7 +80,8 @@ export default App;
 |参数|说明|类型|是否必须|默认值|
 |-|-|-|:-:|:-:|
 |key|分割内容唯一标识|number/string|否||
-|defaultSize|默认大小|number/string|否||
-|minSize|最小大小|number/string|否||
-|maxSize|最大大小|number/string|否||
+|size|默认大小|number/string|否||
+|min|最小大小|number/string|否||
+|max|最大大小|number/string|否||
+|resizable|是否可调整大小|boolean|否|true|
 |content|分割内容|any|是||

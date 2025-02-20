@@ -4,7 +4,7 @@
     "outDir": "./@ihatecode/react-splitter/lib",
     "module": "NodeNext",
     "jsx": "react",
-    "target": "ES2015",
+    "target": "ESNext",
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "NodeNext",
     "esModuleInterop": false,
