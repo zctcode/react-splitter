@@ -34,15 +34,15 @@ const App: React.FC = () => {
     <Splitter
         items={[
             {
-                defaultSize:200,
-                minSize:100,
-                maxSize:300,
+                size:200,
+                min:100,
+                max:300,
                 content:<div>Left</div>
             },
             {
-                defaultSize:200,
-                minSize:100,
-                maxSize:300,
+                size:'50%',
+                min:'25%',
+                max:'75%',
                 content:<div>Right</div>
             }]
         }
@@ -62,13 +62,13 @@ Online demo: [https://rg4jgy.csb.app/](https://rg4jgy.csb.app/)
 #### Splitter props
 |Property|Type|Optional|Default|
 |-|-|:-:|:-:|
-|bordered|boolean|Y|false|
+|resizable|boolean|Y|true|
 |className|string|Y||
 |style|object|Y||
 |direction|'horizontal', 'vertical'|Y|'horizontal'|
 |splitbar|object|Y||
 |items|Array|N||
-|onResize|(sizes: number[], percents: number[]) => void|Y||
+|onResize|(sizes: { px: number, percent: number }[]) => void|Y||
 
 #### Splitbar props
 |Property|Type|Optional|Default|
@@ -77,10 +77,11 @@ Online demo: [https://rg4jgy.csb.app/](https://rg4jgy.csb.app/)
 |color|string|Y|'#eee'|
 
 #### Splitter Item props
-|Property|Type|Optional|
-|-|-|:-:|
+|Property|Type|Optional|Remark|
+|-|-|:-:|-|
 |key|number/string|Y||
-|defaultSize|number/string|Y||
-|minSize|number/string|Y||
-|maxSize|number/string|Y||
-|content|any|Y||
+|size|number/string|Y|px: 100 or '100px';  percent: '50%'|
+|min|number/string|Y|same as 'size'|
+|max|number/string|Y|same as 'size'|
+|resizable|boolean|Y|true|
+|content|any|N||

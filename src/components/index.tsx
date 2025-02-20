@@ -93,6 +93,11 @@ const Splitter: React.FC<SplitterProps> = (props) => {
 
         const observer = new ResizeObserver(debounce((entries) => {
             if (!entries.length) return;
+
+            if (lastWrapperSize.current.width === 0 || lastWrapperSize.current.height === 0) {
+                initItemsSize();
+                return;
+            }
             const { offsetWidth, offsetHeight } = entries[0].target;
             const widthChanged = direction === 'horizontal' && offsetWidth !== lastWrapperSize.current.width;
             const heightChanged = direction === 'vertical' && offsetHeight !== lastWrapperSize.current.height;
@@ -220,6 +225,9 @@ const Splitter: React.FC<SplitterProps> = (props) => {
     const initItemsSize = () => {
         const minusSizes = getMinusSizes();
         const wrapperSize = getWrapperSize();
+
+        if (!wrapperSize) return;
+
         const sizes = props.items.map((item) => {
             return calcItemInitSize(item, wrapperSize);
         });
@@ -240,6 +248,8 @@ const Splitter: React.FC<SplitterProps> = (props) => {
                 : `calc(${item.percent * 100}% - ${minusSizes[index]}px)`;
             itemsRef.current[index]?.setAttribute('style', `flex-basis: ${style}`);
         });
+
+        props.onResize?.(sizes.map(({ px, percent }) => ({ px, percent })));
     }
 
     /** 计算每个面板设置的大小范围 */
