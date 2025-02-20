@@ -23,11 +23,6 @@
     cursor: row-resize;
 }
 
-.ihc-splitbar {
-    position: relative;
-    background-color: var(--ihc-splitter-color);
-}
-
 .ihc-splitter-vertical>.ihc-splitbar {
     height: var(--ihc-splitter-size);
     min-height: var(--ihc-splitter-size);
@@ -42,6 +37,15 @@
     cursor: col-resize;
 }
 
+.ihc-splitter-nonresizable>.ihc-splitbar {
+    cursor: default;
+}
+
+.ihc-splitbar {
+    position: relative;
+    background-color: var(--ihc-splitter-color);
+}
+
 .ihc-splitbar-disabled {
     cursor: default;
 }
@@ -54,5 +58,5 @@
 
 .ihc-splitter-resizing>.ihc-splitter-item {
     will-change: flex-basis;
-    transition: flex-basis 0ms linear;
+    transition-duration: 0ms;
 }
